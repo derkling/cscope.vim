@@ -1,26 +1,101 @@
 " vim: tabstop=2 shiftwidth=2 softtabstop=2 expandtab foldmethod=marker
 "    Copyright: Copyright (C) 2012 Brook Hong
 "    License: The MIT License
-"
-set cscopequickfix=s-,g-,d-,c-,t-,e-,f-,i-
-" s: Find this C symbol
-map <leader>fs :call CscopeFind('s', expand('<cword>'))<CR>
-" g: Find this definition
-map <leader>fg :call CscopeFind('g', expand('<cword>'))<CR>
-" d: Find functions called by this function
-map <leader>fd :call CscopeFind('d', expand('<cword>'))<CR>
-" c: Find functions calling this function
-map <leader>fc :call CscopeFind('c', expand('<cword>'))<CR>
-" t: Find this text string
-map <leader>ft :call CscopeFind('t', expand('<cword>'))<CR>
-" e: Find this egrep pattern
-map <leader>fe :call CscopeFind('e', expand('<cword>'))<CR>
-" f: Find this file
-map <leader>ff :call CscopeFind('f', expand('<cword>'))<CR>
-" i: Find files #including this file
-map <leader>fi :call CscopeFind('i', expand('<cword>'))<CR>
-map <leader>l :call ToggleLocationList()<CR>
 
+
+""""""""""""" Standard cscope/vim boilerplate
+" use both cscope and ctag for 'ctrl-]', ':ta', and 'vim -t'
+set cscopetag
+" check cscope for definition of a symbol before checking ctags: set to 1
+" if you want the reverse search order.
+set csto=0
+" show msg when any other cscope db added
+" set cscopeverbose
+
+""""""""""""" My cscope/vim key mappings
+" The following maps all invoke one of the following cscope search types:
+"
+"   's'   symbol: find all references to the token under cursor
+"   'g'   global: find global definition(s) of the token under cursor
+"   'c'   calls:  find all calls to the function name under cursor
+"   't'   text:   find all instances of the text under cursor
+"   'e'   egrep:  egrep search for the word under cursor
+"   'f'   file:   open the filename under cursor
+"   'i'   includes: find files that include the filename under cursor
+"   'd'   called: find functions that function under cursor calls
+"
+" Below are three sets of the maps: one set that just jumps to your
+" search result, one that splits the existing vim window horizontally and
+" diplays your search result in the new window, and one that does the same
+" thing, but does a vertical split instead (vim 6 only).
+"
+" I've used CTRL-\ and CTRL-@ as the starting keys for these maps, as it's
+" unlikely that you need their default mappings (CTRL-\'s default use is
+" as part of CTRL-\ CTRL-N typemap, which basically just does the same
+" thing as hitting 'escape': CTRL-@ doesn't seem to have any default use).
+" If you don't like using 'CTRL-@' or CTRL-\, , you can change some or all
+" of these maps to use other keys.  One likely candidate is 'CTRL-_'
+" (which also maps to CTRL-/, which is easier to type).  By default it is
+" used to switch between Hebrew and English keyboard mode.
+"
+" All of the maps involving the <cfile> macro use '^<cfile>$': this is so
+" that searches over '#include <time.h>" return only references to
+" 'time.h', and not 'sys/time.h', etc. (by default cscope will return all
+" files that contain 'time.h' as part of their name).
+
+
+" s: Find this C symbol
+map <C-\>s :call CscopeFind('s', expand('<cword>'))<CR>
+" g: Find this definition
+map <C-\>g :call CscopeFind('g', expand('<cword>'))<CR>
+" d: Find functions called by this function
+map <C-\>d :call CscopeFind('d', expand('<cword>'))<CR>
+" c: Find functions calling this function
+map <C-\>c :call CscopeFind('c', expand('<cword>'))<CR>
+" t: Find this text string
+map <C-\>t :call CscopeFind('t', expand('<cword>'))<CR>
+" e: Find this egrep pattern
+map <C-\>e :call CscopeFind('e', expand('<cword>'))<CR>
+" f: Find this file
+map <C-\>f :call CscopeFind('f', expand('<cword>'))<CR>
+" i: Find files #including this file
+map <C-\>i :call CscopeFind('i', expand('<cword>'))<CR>
+
+" Using 'CTRL-spacebar' (intepreted as CTRL-@ by vim) then a search type
+" makes the vim window split horizontally, with search result displayed in
+" the new window.
+"
+" (Note: earlier versions of vim may not have the :scs command, but it
+" can be simulated roughly via:
+"    nmap <C-@>s <C-W><C-S> :cs find s <C-R>=expand("<cword>")<CR><CR>
+
+nmap <C-@>s :scs find s <C-R>=expand("<cword>")<CR><CR>
+nmap <C-@>g :scs find g <C-R>=expand("<cword>")<CR><CR>
+nmap <C-@>c :scs find c <C-R>=expand("<cword>")<CR><CR>
+nmap <C-@>t :scs find t <C-R>=expand("<cword>")<CR><CR>
+nmap <C-@>e :scs find e <C-R>=expand("<cword>")<CR><CR>
+nmap <C-@>f :scs find f <C-R>=expand("<cfile>")<CR><CR>
+nmap <C-@>i :scs find i ^<C-R>=expand("<cfile>")<CR>$<CR>
+nmap <C-@>d :scs find d <C-R>=expand("<cword>")<CR><CR>
+
+
+" Hitting CTRL-space *twice* before the search type does a vertical
+" split instead of a horizontal one (vim 6 and up only)
+"
+" (Note: you may wish to put a 'set splitright' in your .vimrc
+" if you prefer the new window on the right instead of the left
+
+nmap <C-@><C-@>s :vert scs find s <C-R>=expand("<cword>")<CR><CR>
+nmap <C-@><C-@>g :vert scs find g <C-R>=expand("<cword>")<CR><CR>
+nmap <C-@><C-@>c :vert scs find c <C-R>=expand("<cword>")<CR><CR>
+nmap <C-@><C-@>t :vert scs find t <C-R>=expand("<cword>")<CR><CR>
+nmap <C-@><C-@>e :vert scs find e <C-R>=expand("<cword>")<CR><CR>
+nmap <C-@><C-@>f :vert scs find f <C-R>=expand("<cfile>")<CR><CR>
+nmap <C-@><C-@>i :vert scs find i ^<C-R>=expand("<cfile>")<CR>$<CR>
+nmap <C-@><C-@>d :vert scs find d <C-R>=expand("<cword>")<CR><CR>
+
+
+""""""""""""" CScope Utility Functions
 com! -nargs=? -complete=dir CscopeGen call CreateCscopeDB("<args>")
 com! -nargs=0 CscopeList call <SID>ListDBs()
 com! -nargs=0 CscopeClear call <SID>ClearCscopeDB()
